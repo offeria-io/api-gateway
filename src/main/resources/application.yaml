@@ -1,65 +1,73 @@
 spring:
   application:
     name: api-gateway
-  profiles:
-    active: dev
+
   cloud:
     gateway:
       routes:
-        - id: user-service
-          uri: lb://user-service
+        - id: auth-service
+          uri: ${AUTH_SERVICE_URL:lb://auth-service}
           predicates:
-            - Path=/api/v1/users/**
-        - id: product-service
-          uri: lb://product-service
+            - Path=/api/v1/auth/**
+
+        - id: rfq-service
+          uri: ${RFQ_SERVICE_URL:lb://rfq-service}
           predicates:
-            - Path=/api/v1/products/**
-      # Example of default filters that apply to all routes
-      default-filters:
-        - name: RequestRateLimiter
-          args:
-            redis-rate-limiter.replenishRate: 10
-            redis-rate-limiter.burstCapacity: 20
-            redis-rate-limiter.requestedTokens: 1
+            - Path=/api/v1/rfqs/**
+
+        - id: material-service
+          uri: ${MATERIAL_SERVICE_URL:lb://material-service}
+          predicates:
+            - Path=/api/v1/materials/**
+
+        - id: proposal-service
+          uri: ${PROPOSAL_SERVICE_URL:lb://proposal-service}
+          predicates:
+            - Path=/api/v1/proposals/**
+
+        - id: document-service
+          uri: ${DOCUMENT_SERVICE_URL:lb://document-service}
+          predicates:
+            - Path=/api/v1/documents/**
+
+        - id: file-service
+          uri: ${FILE_SERVICE_URL:lb://file-service}
+          predicates:
+            - Path=/api/v1/files/**
+
+        - id: translation-service
+          uri: ${TRANSLATION_SERVICE_URL:lb://translation-service}
+          predicates:
+            - Path=/api/v1/translations/**
+
+        - id: search-service
+          uri: ${SEARCH_SERVICE_URL:lb://search-service}
+          predicates:
+            - Path=/api/v1/search/**
+
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL:lb://notification-service}
+          predicates:
+            - Path=/api/v1/notifications/**
 
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
 
 logging:
   level:
     root: INFO
-    offeria.api_gateway: DEBUG
-    org.springframework.cloud.gateway: TRACE
-
-jwt:
-  # Base64 encoded 256-bit key
-  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
-  expiration: 86400000 # 24 hours
-
----
-spring:
-  config:
-    activate:
-      on-profile: dev
-  datasource:
-    url: jdbc:postgresql://localhost:5432/offeria_gateway
-    username: postgres
-    password: password
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-
----
-spring:
-  config:
-    activate:
-      on-profile: prod
-  datasource:
-    url: ${DATABASE_URL}
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: false
+    offeria.api_gateway: INFO
